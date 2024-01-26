@@ -15,3 +15,8 @@ footer {
   padding: 10px;
   background-color: #f0f0f0;
 }
+
+body {
+  transform-origin: top left;
+  transform: scale(1.05); /* 여기서 scale 값을 조절하여 초기 확대 정도를 조절할 수 있습니다. */
+}
