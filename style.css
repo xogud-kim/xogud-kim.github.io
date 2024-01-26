@@ -18,5 +18,5 @@ footer {
 
 body {
   transform-origin: top left;
-  transform: scale(1.05); /* 여기서 scale 값을 조절하여 초기 확대 정도를 조절할 수 있습니다. */
+  transform: scale(1.2); /* 여기서 scale 값을 조절하여 초기 확대 정도를 조절할 수 있습니다. */
 }
