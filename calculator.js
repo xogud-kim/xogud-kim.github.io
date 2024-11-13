@@ -8,8 +8,9 @@ let trades = [];
 app.post('/add-trade', (req, res) => {
     const { action, quantity, price } = req.body;
     const total = quantity * price;
-    trades.push({ action, quantity, price, total, status: "Active" });
-    res.send({ message: '거래가 추가되었습니다.', trade: { action, quantity, price, total } });
+    const supplyPrice = total * 1.1;  // 공급가액 계산
+    trades.push({ action, quantity, price, total, supplyPrice, status: "Active" });
+    res.send({ message: '거래가 추가되었습니다.', trade: { action, quantity, price, total, supplyPrice } });
 });
 
 // 모든 거래 조회
@@ -23,7 +24,8 @@ app.put('/update-trade/:index', (req, res) => {
     if (index >= 0 && index < trades.length) {
         const { action, quantity, price } = req.body;
         const total = quantity * price;
-        trades[index] = { ...trades[index], action, quantity, price, total };
+        const supplyPrice = total * 1.1;  // 공급가액 재계산
+        trades[index] = { ...trades[index], action, quantity, price, total, supplyPrice };
         res.send({ message: '거래가 수정되었습니다.', trade: trades[index] });
     } else {
         res.status(404).send({ message: '거래를 찾을 수 없습니다.' });
