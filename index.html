@@ -1,14 +1,181 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-    </head>
-
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>금 거래 누적 계산기</title>
+    <style>
+        /* 지연된 거래의 배경색 */
+        .delayed {
+            background-color: #d3d3d3; /* 회색 */
+        }
+    </style>
+</head>
 <body>
-    <h1>Hello World</h1>
-    <p>I'm hosted with GitHub Pages.</p>
-        <li> <a href="https://www.activism.net/cypherpunk/manifesto.html"> A Cypherpunk's Manifesto </a> </li>
-    </ul>
-</body>
+    <h1>금 거래 누적 계산기</h1>
+    
+    <form id="tradeForm">
+        <label for="action">액션 (구매/판매):</label>
+        <input type="text" id="action" required>
+        
+        <label for="quantity">수량:</label>
+        <input type="number" id="quantity" required>
+        
+        <label for="price">단가:</label>
+        <input type="number" id="price" required>
+        
+        <button type="button" onclick="addTrade()">거래 추가</button>
+        <button type="button" onclick="resetCalculator()">초기화</button>
+    </form>
+    
+    <h2>거래 내역</h2>
+    <table id="tradeTable">
+        <tr>
+            <th>액션</th>
+            <th>수량</th>
+            <th>단가</th>
+            <th>합계</th>
+            <th>수정</th>
+            <th>지연</th>
+            <th>삭제</th>
+        </tr>
+    </table>
+    
+    <h2>총 금액</h2>
+    <p id="totalAmount">0 원</p>
 
+    <!-- 수정 모달 -->
+    <div id="editModal" style="display:none;">
+        <h3>거래 수정</h3>
+        <label for="editAction">액션:</label>
+        <input type="text" id="editAction" required>
+        
+        <label for="editQuantity">수량:</label>
+        <input type="number" id="editQuantity" required>
+        
+        <label for="editPrice">단가:</label>
+        <input type="number" id="editPrice" required>
+        
+        <button type="button" onclick="saveEdit()">저장</button>
+        <button type="button" onclick="closeEditModal()">취소</button>
+    </div>
+
+    <script>
+        let trades = [];
+        let totalAmount = 0;
+        let editIndex = null;
+
+        function addTrade() {
+    const action = document.getElementById("action").value;
+    const quantity = parseFloat(document.getElementById("quantity").value);
+    const price = parseFloat(document.getElementById("price").value);
+
+    const total = quantity * price;
+    trades.push({ action, quantity, price, total, status: "Active" });
+
+    updateTable();
+    calculateTotal();
+}
+
+function updateTable() {
+    const table = document.getElementById("tradeTable");
+    table.innerHTML = `
+        <tr>
+            <th>액션</th>
+            <th>수량</th>
+            <th>단가</th>
+            <th>합계</th>
+            <th>수정</th>
+            <th>지연</th>
+            <th>삭제</th>
+        </tr>`;
+    
+    trades.forEach((trade, index) => {
+        const row = table.insertRow();
+        row.className = trade.status === "Delayed" ? "delayed" : ""; // 지연 상태에 따른 색상 적용
+        
+        row.insertCell(0).innerText = trade.action;
+        row.insertCell(1).innerText = trade.quantity.toLocaleString(); // 수량에 콤마 추가
+        row.insertCell(2).innerText = trade.price.toLocaleString(); // 단가에 콤마 추가
+        row.insertCell(3).innerText = trade.total.toLocaleString(); // 합계에 콤마 추가
+
+        // 수정 버튼
+        const editCell = row.insertCell(4);
+        const editButton = document.createElement("button");
+        editButton.innerText = "수정";
+        editButton.onclick = () => openEditModal(index);
+        editCell.appendChild(editButton);
+
+        // 지연 버튼
+        const delayCell = row.insertCell(5);
+        const delayButton = document.createElement("button");
+        delayButton.innerText = "지연";
+        delayButton.onclick = () => delayTrade(index);
+        delayCell.appendChild(delayButton);
+
+        // 삭제 버튼
+        const deleteCell = row.insertCell(6);
+        const deleteButton = document.createElement("button");
+        deleteButton.innerText = "삭제";
+        deleteButton.onclick = () => deleteTrade(index);
+        deleteCell.appendChild(deleteButton);
+    });
+}
+
+function calculateTotal() {
+    totalAmount = trades.reduce((acc, trade) => acc + (trade.status === "Active" ? trade.total : 0), 0);
+    document.getElementById("totalAmount").innerText = `${totalAmount.toLocaleString()} 원`; // 총 금액에 콤마 추가
+}
+
+
+        function resetCalculator() {
+    document.getElementById("action").value = "";    // 액션 필드 초기화
+    document.getElementById("quantity").value = "";  // 수량 필드 초기화
+    document.getElementById("price").value = "";     // 단가 필드 초기화
+}
+
+
+        function openEditModal(index) {
+            editIndex = index;
+            const trade = trades[index];
+            document.getElementById("editAction").value = trade.action;
+            document.getElementById("editQuantity").value = trade.quantity;
+            document.getElementById("editPrice").value = trade.price;
+            document.getElementById("editModal").style.display = "block";
+        }
+
+        function saveEdit() {
+            const action = document.getElementById("editAction").value;
+            const quantity = parseFloat(document.getElementById("editQuantity").value);
+            const price = parseFloat(document.getElementById("editPrice").value);
+
+            trades[editIndex] = {
+                ...trades[editIndex],
+                action,
+                quantity,
+                price,
+                total: quantity * price
+            };
+            
+            closeEditModal();
+            updateTable();
+            calculateTotal();
+        }
+
+        function closeEditModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+
+        function delayTrade(index) {
+            trades[index].status = trades[index].status === "Delayed" ? "Active" : "Delayed";
+            updateTable();
+            calculateTotal();
+        }
+
+        function deleteTrade(index) {
+            trades.splice(index, 1);
+            updateTable();
+            calculateTotal();
+        }
+    </script>
+</body>
 </html>
