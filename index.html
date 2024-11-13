@@ -82,7 +82,7 @@
             const table = document.getElementById("tradeTable");
             table.innerHTML = `
                 <tr>
-                    <th>공급가액</th> <!-- 공급가액 칼럼 추가 -->
+                    <th>공급가액</th>
                     <th>액션</th>
                     <th>수량</th>
                     <th>단가</th>
@@ -91,11 +91,11 @@
                     <th>지연</th>
                     <th>삭제</th>
                 </tr>`;
-            
+
             trades.forEach((trade, index) => {
                 const row = table.insertRow();
                 row.className = trade.status === "Delayed" ? "delayed" : ""; // 지연 상태에 따른 색상 적용
-
+                
                 row.insertCell(0).innerText = trade.supplyPrice.toLocaleString(); // 공급가액에 콤마 추가
                 row.insertCell(1).innerText = trade.action;
                 row.insertCell(2).innerText = trade.quantity.toLocaleString(); // 수량에 콤마 추가
@@ -126,7 +126,7 @@
         }
 
         function calculateTotal() {
-            totalAmount = trades.reduce((acc, trade) => acc + (trade.status === "Active" ? trade.total : 0), 0);
+            totalAmount = trades.reduce((acc, trade) => acc + (trade.status === "Active" ? trade.supplyPrice : 0), 0);
             document.getElementById("totalAmount").innerText = `${totalAmount.toLocaleString()} 원`; // 총 금액에 콤마 추가
         }
 
@@ -156,7 +156,7 @@
                 quantity,
                 price,
                 total: quantity * price,
-                supplyPrice: quantity * price * 1.1 // 공급가액도 다시 계산
+                supplyPrice: (quantity * price) * 1.1 // 공급가액을 재계산
             };
             
             closeEditModal();
