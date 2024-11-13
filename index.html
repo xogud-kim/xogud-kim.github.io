@@ -30,6 +30,7 @@
     <h2>거래 내역</h2>
     <table id="tradeTable">
         <tr>
+            <th>공급가액</th> <!-- 공급가액 칼럼 추가 -->
             <th>액션</th>
             <th>수량</th>
             <th>단가</th>
@@ -65,74 +66,75 @@
         let editIndex = null;
 
         function addTrade() {
-    const action = document.getElementById("action").value;
-    const quantity = parseFloat(document.getElementById("quantity").value);
-    const price = parseFloat(document.getElementById("price").value);
+            const action = document.getElementById("action").value;
+            const quantity = parseFloat(document.getElementById("quantity").value);
+            const price = parseFloat(document.getElementById("price").value);
 
-    const total = quantity * price;
-    trades.push({ action, quantity, price, total, status: "Active" });
+            const total = quantity * price;
+            const supplyPrice = total * 1.1;  // 합계에 1.1을 곱하여 공급가액 계산
+            trades.push({ action, quantity, price, total, supplyPrice, status: "Active" });
 
-    updateTable();
-    calculateTotal();
-}
+            updateTable();
+            calculateTotal();
+        }
 
-function updateTable() {
-    const table = document.getElementById("tradeTable");
-    table.innerHTML = `
-        <tr>
-            <th>액션</th>
-            <th>수량</th>
-            <th>단가</th>
-            <th>합계</th>
-            <th>수정</th>
-            <th>지연</th>
-            <th>삭제</th>
-        </tr>`;
-    
-    trades.forEach((trade, index) => {
-        const row = table.insertRow();
-        row.className = trade.status === "Delayed" ? "delayed" : ""; // 지연 상태에 따른 색상 적용
-        
-        row.insertCell(0).innerText = trade.action;
-        row.insertCell(1).innerText = trade.quantity.toLocaleString(); // 수량에 콤마 추가
-        row.insertCell(2).innerText = trade.price.toLocaleString(); // 단가에 콤마 추가
-        row.insertCell(3).innerText = trade.total.toLocaleString(); // 합계에 콤마 추가
+        function updateTable() {
+            const table = document.getElementById("tradeTable");
+            table.innerHTML = `
+                <tr>
+                    <th>공급가액</th> <!-- 공급가액 칼럼 추가 -->
+                    <th>액션</th>
+                    <th>수량</th>
+                    <th>단가</th>
+                    <th>합계</th>
+                    <th>수정</th>
+                    <th>지연</th>
+                    <th>삭제</th>
+                </tr>`;
+            
+            trades.forEach((trade, index) => {
+                const row = table.insertRow();
+                row.className = trade.status === "Delayed" ? "delayed" : ""; // 지연 상태에 따른 색상 적용
 
-        // 수정 버튼
-        const editCell = row.insertCell(4);
-        const editButton = document.createElement("button");
-        editButton.innerText = "수정";
-        editButton.onclick = () => openEditModal(index);
-        editCell.appendChild(editButton);
+                row.insertCell(0).innerText = trade.supplyPrice.toLocaleString(); // 공급가액에 콤마 추가
+                row.insertCell(1).innerText = trade.action;
+                row.insertCell(2).innerText = trade.quantity.toLocaleString(); // 수량에 콤마 추가
+                row.insertCell(3).innerText = trade.price.toLocaleString(); // 단가에 콤마 추가
+                row.insertCell(4).innerText = trade.total.toLocaleString(); // 합계에 콤마 추가
 
-        // 지연 버튼
-        const delayCell = row.insertCell(5);
-        const delayButton = document.createElement("button");
-        delayButton.innerText = "지연";
-        delayButton.onclick = () => delayTrade(index);
-        delayCell.appendChild(delayButton);
+                // 수정 버튼
+                const editCell = row.insertCell(5);
+                const editButton = document.createElement("button");
+                editButton.innerText = "수정";
+                editButton.onclick = () => openEditModal(index);
+                editCell.appendChild(editButton);
 
-        // 삭제 버튼
-        const deleteCell = row.insertCell(6);
-        const deleteButton = document.createElement("button");
-        deleteButton.innerText = "삭제";
-        deleteButton.onclick = () => deleteTrade(index);
-        deleteCell.appendChild(deleteButton);
-    });
-}
+                // 지연 버튼
+                const delayCell = row.insertCell(6);
+                const delayButton = document.createElement("button");
+                delayButton.innerText = "지연";
+                delayButton.onclick = () => delayTrade(index);
+                delayCell.appendChild(delayButton);
 
-function calculateTotal() {
-    totalAmount = trades.reduce((acc, trade) => acc + (trade.status === "Active" ? trade.total : 0), 0);
-    document.getElementById("totalAmount").innerText = `${totalAmount.toLocaleString()} 원`; // 총 금액에 콤마 추가
-}
+                // 삭제 버튼
+                const deleteCell = row.insertCell(7);
+                const deleteButton = document.createElement("button");
+                deleteButton.innerText = "삭제";
+                deleteButton.onclick = () => deleteTrade(index);
+                deleteCell.appendChild(deleteButton);
+            });
+        }
 
+        function calculateTotal() {
+            totalAmount = trades.reduce((acc, trade) => acc + (trade.status === "Active" ? trade.total : 0), 0);
+            document.getElementById("totalAmount").innerText = `${totalAmount.toLocaleString()} 원`; // 총 금액에 콤마 추가
+        }
 
         function resetCalculator() {
-    document.getElementById("action").value = "";    // 액션 필드 초기화
-    document.getElementById("quantity").value = "";  // 수량 필드 초기화
-    document.getElementById("price").value = "";     // 단가 필드 초기화
-}
-
+            document.getElementById("action").value = "";    // 액션 필드 초기화
+            document.getElementById("quantity").value = "";  // 수량 필드 초기화
+            document.getElementById("price").value = "";     // 단가 필드 초기화
+        }
 
         function openEditModal(index) {
             editIndex = index;
@@ -153,7 +155,8 @@ function calculateTotal() {
                 action,
                 quantity,
                 price,
-                total: quantity * price
+                total: quantity * price,
+                supplyPrice: quantity * price * 1.1 // 공급가액도 다시 계산
             };
             
             closeEditModal();
